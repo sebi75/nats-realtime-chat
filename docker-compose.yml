@@ -1,0 +1,40 @@
+version: '3.8'
+services:
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    image: api
+    ports:
+      - 8080:8080
+    depends_on:
+      - auth-service
+      - history-service
+      - nats
+    env_file:
+      - ./api/.env
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    image: auth-service
+    ports:
+      - 8081:8081
+    env_file:
+      - ./auth-service/.env
+  nats:
+    build:
+      context: ./nats
+      dockerfile: Dockerfile
+    image: nats
+    ports:
+      - 4222:4222
+  history-service:
+    build:
+      context: ./history-service
+      dockerfile: Dockerfile
+    image: history-service
+    ports:
+      - 8082:8082
+    env_file:
+      - ./history-service/.env
