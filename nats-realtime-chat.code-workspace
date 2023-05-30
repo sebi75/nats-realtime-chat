@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "auth-service"
+		},
+		{
+			"path": "history-service"
+		},
+		{
+			"path": "api"
+		},
+		{
+			"path": "web"
+		},
+		{
+			"path": "nats"
+		}
+	],
+	"settings": {}
+}
