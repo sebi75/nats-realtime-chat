@@ -5,12 +5,12 @@ export enum HTTPMethod {
 	DELETE = 'DELETE',
 }
 
-export const fetcher = async (
+export const fetcher = async <T>(
 	path: string,
 	method: HTTPMethod,
 	params?: Record<string, string>
-) => {
-	const baseURL = getURLFromEnv();
+): Promise<T> => {
+	const baseURL = getServerURL();
 	const url = `${baseURL}/${path}`;
 
 	try {
@@ -27,13 +27,16 @@ export const fetcher = async (
 		if (!response.ok) {
 			throw new Error(response.statusText);
 		}
+
+		const data = await response.json();
+		return data;
 	} catch (error: any) {
 		throw new Error(error.message || 'Something went wrong');
 	}
 };
 
-export const getURLFromEnv = () => {
-	return process.env.REACT_APP_API_URL;
+export const getServerURL = () => {
+	return 'http://localhost:8080';
 };
 
 export const restService = {
