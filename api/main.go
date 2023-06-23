@@ -43,7 +43,8 @@ func main() {
 			ReadBufferSize:  1024, // 1kb
 			WriteBufferSize: 1024, // 1kb
 			CheckOrigin: func(r *http.Request) bool {
-				return r.Header.Get("Origin") == "http://localhost:5173"
+				// return r.Header.Get("Origin") == "http://localhost:5173" // web app
+				return true
 			},
 		},
 	}
