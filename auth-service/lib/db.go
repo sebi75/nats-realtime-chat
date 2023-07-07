@@ -2,7 +2,7 @@ package lib
 
 import (
 	"auth-service/env"
-	"auth-service/lib/logger"
+	"auth-service/utils/logger"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"

@@ -1,7 +1,7 @@
 package env
 
 import (
-	"auth-service/lib/logger"
+	"auth-service/utils/logger"
 	"log"
 	"os"
 
