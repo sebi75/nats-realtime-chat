@@ -1,6 +1,5 @@
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["jsonProtocol"]
+    provider = "prisma-client-js"
 }
 
 datasource db {
@@ -10,17 +9,17 @@ datasource db {
 
 model User {
     id            String    @id @default(cuid())
-    name          String?
-    email         String?   @unique
-    emailVerified DateTime?
-    image         String?
+    displayName   String?   @map("display_name")
+    email         String?   @unique @map("email")
+    emailVerified DateTime? @map("email_verified")
+    image         String?   @map("image")
 
     chats    ChatMember[]
     messages Message[]
 }
 
 model VerificationToken {
-    identifier String
+    identifier String   @unique
     token      String   @unique
     expires    DateTime
 
@@ -37,17 +36,17 @@ model Chat {
 
 model ChatPreview {
     id                  String    @id @default(cuid())
-    chatId              String    @unique
-    lastMessageText     String?
-    lastMessageSentAt   DateTime?
-    lastMessageSentById String?
+    chatId              String    @unique @map("chat_id")
+    lastMessageText     String?   @map("last_message_text")
+    lastMessageSentAt   DateTime? @map("last_message_sent_at")
+    lastMessageSentById String?   @map("last_message_sent_by_id")
 
     chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }
 
 model ChatMember {
-    chatId String
-    userId String
+    chatId String @map("chat_id")
+    userId String @map("user_id")
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
     chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
@@ -57,12 +56,11 @@ model ChatMember {
 
 model Message {
     id        String   @id @default(cuid())
-    chatId    String
-    text      String   @db.Text
-    createdAt DateTime @default(now())
-    sentById  String
+    chatId    String   @map("chat_id")
+    text      String   @map("text") @db.Text
+    createdAt DateTime @default(now()) @map("created_at")
+    sentById  String   @map("sent_by_id")
 
     sentBy User @relation(fields: [sentById], references: [id], onDelete: Cascade)
-
-    chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+    chat   Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 }

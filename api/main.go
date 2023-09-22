@@ -7,7 +7,6 @@ import (
 	"errors"
 	"log"
 
-	// "api/pkg/nats"
 	"net/http"
 
 	"github.com/gorilla/handlers"
