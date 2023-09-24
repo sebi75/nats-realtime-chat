@@ -1,13 +1,16 @@
-package domain
+package auth
 
-import "github.com/jmoiron/sqlx"
+import (
+	"auth-service/app/auth/domain"
+
+	"github.com/jmoiron/sqlx"
+)
 
 type AuthRepositoryDB struct {
 	client *sqlx.DB
 }
 
-func (a AuthRepositoryDB) Signup(user *User) (*User, error) {
-	//implementation
+func (a AuthRepositoryDB) Signup(user *domain.User) (*domain.User, error) {
 	return nil, nil
 }
 
