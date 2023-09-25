@@ -7,13 +7,29 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model User {
-    id            String    @id @default(cuid())
-    displayName   String?   @map("display_name")
-    email         String?   @unique @map("email")
-    emailVerified DateTime? @map("email_verified")
-    image         String?   @map("image")
+model Account {
+    id              String    @id @default(uuid())
+    createdAt       DateTime  @default(now()) @map("created_at")
+    updatedAt       DateTime? @updatedAt @map("updated_at")
+    loginCount      Int       @default(0) @map("login_count")
+    lastLogin       DateTime? @map("last_login")
+    lastIp          String?   @map("last_ip")
+    hashed_password String    @map("hashed_password")
+    salt            String    @map("salt")
+    email           String    @unique @map("email")
+    emailVerified   DateTime? @map("email_verified")
 
+    user   User?
+    userId String
+}
+
+model User {
+    id        String  @id @default(uuid())
+    accountId String  @unique @map("account_id")
+    username  String  @map("username")
+    imageUrl  String? @map("image_url")
+
+    account  Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
     chats    ChatMember[]
     messages Message[]
 }
