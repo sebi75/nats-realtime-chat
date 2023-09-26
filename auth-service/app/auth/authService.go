@@ -34,7 +34,7 @@ func (as AuthService) Signup(reqInput dto.SignupRequest) (*domain.User, *errs.Ap
 			return nil, err
 		}
 	}
-	// we know the credentials are unique, so we can create the account
+
 	encryptService := encrypt.EncryptService{}
 	salt, encrErr := encryptService.GenerateSalt()
 	if encrErr != nil {
@@ -51,15 +51,33 @@ func (as AuthService) Signup(reqInput dto.SignupRequest) (*domain.User, *errs.Ap
 		logger.Error("Error while generating UUID")
 		return nil, errs.NewUnexpectedError("Unexpected error")
 	}
-	_ = domain.Account{
+	newAccount := domain.Account{
 		Id:             accountUUID,
 		HashedPassword: hashedPassword,
 		Email:          reqInput.Email,
 		EmailVerified:  false,
 		Salt:           salt,
 	}
-	// newAccount, err := as.repo.CreateAccount(reqInput)
-	return nil, nil
+	newAccountDB, err := as.repo.CreateAccount(newAccount)
+	if err != nil {
+		return nil, err
+	}
+	userUUID, uuidErr := utils.GenerateUUID()
+	if uuidErr != nil {
+		logger.Error("Error while generating UUID")
+		return nil, errs.NewUnexpectedError("Unexpected error")
+	}
+	newUser := domain.User{
+		Id:        userUUID,
+		AccountId: newAccountDB.Id,
+		Username:  reqInput.Username,
+		ImageUrl:  "",
+	}
+	newUserDB, err := as.repo.CreateUser(newUser)
+	if err != nil {
+		return nil, err
+	}
+	return newUserDB, nil
 }
 
 func NewAuthService(repo AuthRepositoryDB) AuthService {
