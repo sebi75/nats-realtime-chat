@@ -10,7 +10,7 @@ import (
 )
 
 func InitDbClient(config *env.Config) (*sqlx.DB, error) {
-	connectionString := config.DB.User + ":" + config.DB.Password + "@tcp(" + config.DB.Host + ":" + config.DB.Port + ")/" + config.DB.DatabaseName
+	connectionString := config.DB.User + ":" + config.DB.Password + "@tcp(" + config.DB.Host + ":" + config.DB.Port + ")/" + config.DB.DatabaseName + "?parseTime=true"
 	dbClient, err := sqlx.Connect("mysql", connectionString)
 
 	dbClient.SetConnMaxLifetime(time.Minute * 1)
