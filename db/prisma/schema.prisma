@@ -17,7 +17,7 @@ model Account {
     hashed_password String    @map("hashed_password")
     salt            String    @map("salt")
     email           String    @unique @map("email")
-    emailVerified   DateTime? @map("email_verified")
+    emailVerified   Boolean?  @map("email_verified")
 
     user User?
 
