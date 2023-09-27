@@ -14,7 +14,7 @@ type AuthService struct {
 	repo AuthRepositoryDB
 }
 
-func (as AuthService) Signup(reqInput dto.SignupRequest) (*domain.User, *errs.AppError) {
+func (as AuthService) Signup(reqInput *dto.SignupRequest) (*domain.UserWithAccount, *errs.AppError) {
 	accountByUsername, err := as.repo.FindUserByUsername(reqInput.Username)
 	if accountByUsername != nil {
 		return nil, errs.NewBadRequestError("Username already exists")
@@ -77,7 +77,11 @@ func (as AuthService) Signup(reqInput dto.SignupRequest) (*domain.User, *errs.Ap
 	if err != nil {
 		return nil, err
 	}
-	return newUserDB, nil
+	logger.Info("New user created: " + newAccount.Email)
+	return &domain.UserWithAccount{
+		User:    *newUserDB,
+		Account: *newAccountDB.ToResponseDTO(),
+	}, nil
 }
 
 func NewAuthService(repo AuthRepositoryDB) AuthService {

@@ -1,21 +1,15 @@
 package domain
 
-/**
-model User {
-    id        String  @id @default(uuid())
-    accountId String  @unique @map("account_id")
-    username  String  @map("username")
-    imageUrl  String? @map("image_url")
+import "auth-service/app/auth/dto"
 
-    account  Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
-    chats    ChatMember[]
-    messages Message[]
+type UserWithAccount struct {
+	User
+	Account dto.AccountDTO `json:"account"`
 }
-*/
 
 type User struct {
-	Id        string `json:"id"`
-	AccountId string `json:"account_id"`
-	Username  string `json:"username"`
-	ImageUrl  string `json:"image_url"`
+	Id        string `json:"id" db:"id"`
+	AccountId string `json:"account_id" db:"account_id"`
+	Username  string `json:"username" db:"username"`
+	ImageUrl  string `json:"image_url" db:"image_url"`
 }
