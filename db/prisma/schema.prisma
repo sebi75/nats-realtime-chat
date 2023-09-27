@@ -19,10 +19,9 @@ model Account {
     email           String    @unique @map("email")
     emailVerified   DateTime? @map("email_verified")
 
-    user   User?
-    userId String
+    user User?
 
-    @@index([userId], name: "idx_account_user_id")
+    @@index([id], name: "idx_account_id")
     @@index([email], name: "idx_account_email")
 }
 
