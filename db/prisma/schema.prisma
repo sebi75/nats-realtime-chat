@@ -21,17 +21,23 @@ model Account {
 
     user   User?
     userId String
+
+    @@index([userId], name: "idx_account_user_id")
+    @@index([email], name: "idx_account_email")
 }
 
 model User {
     id        String  @id @default(uuid())
     accountId String  @unique @map("account_id")
-    username  String  @map("username")
+    username  String  @unique @map("username")
     imageUrl  String? @map("image_url")
 
     account  Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
     chats    ChatMember[]
     messages Message[]
+
+    @@index([username], name: "idx_user_username")
+    @@index([accountId], name: "idx_user_account_id")
 }
 
 model VerificationToken {
