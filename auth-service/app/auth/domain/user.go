@@ -2,9 +2,14 @@ package domain
 
 import "auth-service/app/auth/dto"
 
-type UserWithAccount struct {
+type UserWithAccountDTO struct {
 	User
 	Account dto.AccountDTO `json:"account"`
+}
+
+type UserWithAccount struct {
+	User
+	Account Account `json:"account"`
 }
 
 type User struct {

@@ -76,6 +76,31 @@ func (a AuthRepositoryDB) FindAccountByEmail(email string) (*domain.Account, *er
 	return &account, nil
 }
 
+func (a AuthRepositoryDB) FindAccountByUsername(username string) (*domain.UserWithAccount, *errs.AppError) {
+	var account domain.Account
+	var user domain.User
+	getAccountSql := `SELECT ac.*, u.* FROM User u
+						JOIN Account ac ON u.account_id = ac.id
+						WHERE u.username = ?`
+	row := a.client.QueryRow(getAccountSql, username)
+	err := row.Scan(&account.Id, &account.HashedPassword, &account.Email,
+		&account.EmailVerified, &account.Salt, &account.CreatedAt,
+		&account.LastIp, &account.LastLogin, &account.LoginCount, &account.UpdatedAt,
+		&user.Id, &user.AccountId, &user.Username, &user.ImageUrl)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("Account not found")
+		} else {
+			logger.Error("Error while querying database: " + err.Error())
+			return nil, errs.NewUnexpectedError("Unexpected database error")
+		}
+	}
+	return &domain.UserWithAccount{
+		User:    user,
+		Account: account,
+	}, nil
+}
+
 func (a AuthRepositoryDB) FindUserByUsername(username string) (*domain.User, *errs.AppError) {
 	var user domain.User
 	getUserSql := `SELECT * FROM User WHERE username = ?`

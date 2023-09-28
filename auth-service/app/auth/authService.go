@@ -4,6 +4,7 @@ import (
 	"auth-service/app/auth/domain"
 	"auth-service/app/auth/dto"
 	"auth-service/app/internal/encrypt"
+	"auth-service/app/internal/jwt"
 	"auth-service/errs"
 	"auth-service/utils"
 	"auth-service/utils/logger"
@@ -14,7 +15,7 @@ type AuthService struct {
 	repo AuthRepositoryDB
 }
 
-func (as AuthService) Signup(reqInput *dto.SignupRequest) (*domain.UserWithAccount, *errs.AppError) {
+func (as AuthService) Signup(reqInput *dto.SignupRequest) (*domain.UserWithAccountDTO, *errs.AppError) {
 	accountByUsername, err := as.repo.FindUserByUsername(reqInput.Username)
 	if accountByUsername != nil {
 		return nil, errs.NewBadRequestError("Username already exists")
@@ -78,10 +79,32 @@ func (as AuthService) Signup(reqInput *dto.SignupRequest) (*domain.UserWithAccou
 		return nil, err
 	}
 	logger.Info("New user created: " + newAccount.Email)
-	return &domain.UserWithAccount{
+	return &domain.UserWithAccountDTO{
 		User:    *newUserDB,
 		Account: *newAccountDB.ToResponseDTO(),
 	}, nil
+}
+
+func (as AuthService) Signin(reqInput *dto.SigninRequest) (string, *errs.AppError) {
+	result, err := as.repo.FindAccountByUsername(reqInput.Username)
+	if err != nil {
+		return "", err
+	}
+	encryptService := encrypt.EncryptService{}
+	encryptedPassword, encrErr := encryptService.HashPassword(reqInput.Password, result.Account.Salt)
+	if encrErr != nil {
+		logger.Error("Error while hashing password")
+		return "", errs.NewUnexpectedError("Unexpected error")
+	}
+	if encryptedPassword != result.Account.HashedPassword {
+		return "", errs.NewUnauthorizedError("Invalid credentials")
+	}
+	jwtService := jwt.DefaultJwtService{}
+	token, tokenErr := jwtService.GenerateAuthToken(result.Id, result.AccountId)
+	if tokenErr != nil {
+		return "", errs.NewUnexpectedError("Unexpected error")
+	}
+	return token, nil
 }
 
 func NewAuthService(repo AuthRepositoryDB) AuthService {

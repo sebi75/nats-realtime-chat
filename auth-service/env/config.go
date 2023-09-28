@@ -22,8 +22,13 @@ type DBConfig struct {
 	DatabaseName string
 }
 
+type RestConfig struct {
+	Jwt_Secret string
+}
+
 type Config struct {
-	DB DBConfig
+	DB   DBConfig
+	Rest RestConfig
 }
 
 func GetConfig() *Config {
@@ -34,6 +39,9 @@ func GetConfig() *Config {
 			User:         os.Getenv("DB_USER"),
 			Password:     os.Getenv("DB_PASSWORD"),
 			DatabaseName: os.Getenv("DB_NAME"),
+		},
+		Rest: RestConfig{
+			Jwt_Secret: os.Getenv("JWT_SECRET"),
 		},
 	}
 }
@@ -57,6 +65,9 @@ func (c *Config) ConfigSanityCheck() {
 
 	if c.DB.DatabaseName == "" {
 		log.Fatal("DB_NAME is not set")
+	}
+	if c.Rest.Jwt_Secret == "" {
+		log.Fatal("JWT_SECRET is not set")
 	}
 
 	logger.Info("Environment variables sanity check passed.")

@@ -29,6 +29,23 @@ func (ah AuthHandlers) Signup(w http.ResponseWriter, request *http.Request) {
 	return
 }
 
+func (ah AuthHandlers) Signin(w http.ResponseWriter, request *http.Request) {
+	var signinRequest dto.SigninRequest
+	err := json.NewDecoder(request.Body).Decode(&signinRequest)
+	if err != nil {
+		resErr := errs.NewBadRequestError("Invalid request body")
+		utils.ResponseWriter(w, resErr.Code, resErr.AsMessage())
+		return
+	}
+	token, serviceErr := ah.service.Signin(&signinRequest)
+	if serviceErr != nil {
+		utils.ResponseWriter(w, serviceErr.Code, serviceErr.AsMessage())
+		return
+	}
+	utils.ResponseWriter(w, http.StatusOK, token)
+	return
+}
+
 func NewAuthHandlers(authService AuthService) *AuthHandlers {
 	return &AuthHandlers{
 		service: authService,
