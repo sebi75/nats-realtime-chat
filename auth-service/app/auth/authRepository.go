@@ -83,10 +83,22 @@ func (a AuthRepositoryDB) FindAccountByUsername(username string) (*domain.UserWi
 						JOIN Account ac ON u.account_id = ac.id
 						WHERE u.username = ?`
 	row := a.client.QueryRow(getAccountSql, username)
-	err := row.Scan(&account.Id, &account.HashedPassword, &account.Email,
-		&account.EmailVerified, &account.Salt, &account.CreatedAt,
-		&account.LastIp, &account.LastLogin, &account.LoginCount, &account.UpdatedAt,
-		&user.Id, &user.AccountId, &user.Username, &user.ImageUrl)
+	err := row.Scan(
+		&account.Id,
+		&account.CreatedAt,
+		&account.UpdatedAt,
+		&account.LoginCount,
+		&account.LastLogin,
+		&account.LastIp,
+		&account.HashedPassword,
+		&account.Salt,
+		&account.Email,
+		&account.EmailVerified,
+		&user.Id,
+		&user.AccountId,
+		&user.Username,
+		&user.ImageUrl,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.NewNotFoundError("Account not found")
