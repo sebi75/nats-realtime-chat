@@ -42,7 +42,11 @@ func (ah AuthHandlers) Signin(w http.ResponseWriter, request *http.Request) {
 		utils.ResponseWriter(w, serviceErr.Code, serviceErr.AsMessage())
 		return
 	}
-	utils.ResponseWriter(w, http.StatusOK, token)
+	utils.ResponseWriter(w, http.StatusOK, struct {
+		Token string `json:"token"`
+	}{
+		Token: token,
+	})
 	return
 }
 

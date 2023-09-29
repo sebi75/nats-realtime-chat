@@ -18,6 +18,7 @@ func (es EncryptService) GenerateSalt() (string, error) {
 	return base64.StdEncoding.EncodeToString(salt), nil
 }
 
+// 2 Layer salted password ( bcrypt uses internally a salt when hashing passwords )
 func (es EncryptService) HashPassword(password, salt string) (string, error) {
 	saltedPassword := password + salt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(saltedPassword), bcrypt.DefaultCost)
@@ -26,4 +27,14 @@ func (es EncryptService) HashPassword(password, salt string) (string, error) {
 	}
 
 	return string(hashedPassword), nil
+}
+
+func (es EncryptService) ComparePasswords(password, salt string, encryptedPassword string) (bool, error) {
+	saltedPassword := password + salt
+	err := bcrypt.CompareHashAndPassword([]byte(encryptedPassword), []byte(saltedPassword))
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }

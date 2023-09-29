@@ -91,12 +91,7 @@ func (as AuthService) Signin(reqInput *dto.SigninRequest) (string, *errs.AppErro
 		return "", err
 	}
 	encryptService := encrypt.EncryptService{}
-	encryptedPassword, encrErr := encryptService.HashPassword(reqInput.Password, result.Account.Salt)
-	if encrErr != nil {
-		logger.Error("Error while hashing password")
-		return "", errs.NewUnexpectedError("Unexpected error")
-	}
-	if encryptedPassword != result.Account.HashedPassword {
+	if res, err := encryptService.ComparePasswords(reqInput.Password, result.Account.Salt, result.Account.HashedPassword); err != nil || !res {
 		return "", errs.NewUnauthorizedError("Invalid credentials")
 	}
 	jwtService := jwt.DefaultJwtService{}
