@@ -43,10 +43,26 @@ func (ah AuthHandlers) Signin(w http.ResponseWriter, request *http.Request) {
 		return
 	}
 	utils.ResponseWriter(w, http.StatusOK, struct {
-		Token string `json:"token"`
+		Token string `json:"token,omitempty"`
 	}{
 		Token: token,
 	})
+	return
+}
+
+func (ah AuthHandlers) Verify(w http.ResponseWriter, request *http.Request) {
+	authorization := request.Header.Get("Authorization")
+	if authorization == "" {
+		utils.ResponseWriter(w, http.StatusBadRequest, "Authorization header is missing!")
+	}
+	token := authorization[7:]
+	tokenPayload, err := ah.service.Verify(token)
+	if err != nil {
+		utils.ResponseWriter(w, err.Code, err.AsMessage())
+		return
+	}
+
+	utils.ResponseWriter(w, http.StatusOK, tokenPayload)
 	return
 }
 

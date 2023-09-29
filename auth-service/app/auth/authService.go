@@ -102,6 +102,19 @@ func (as AuthService) Signin(reqInput *dto.SigninRequest) (string, *errs.AppErro
 	return token, nil
 }
 
+func (as AuthService) Verify(token string) (*domain.TokenPayload, *errs.AppError) {
+	jwtService := jwt.DefaultJwtService{}
+	if valid, err := jwtService.ValidateToken(token); err != nil || !valid {
+		return nil, errs.NewUnauthorizedError("Invalid token")
+	}
+	payload, err := jwtService.DecodeToken(token)
+	if err != nil {
+		return nil, errs.NewUnauthorizedError("Invalid token")
+	}
+
+	return payload, nil
+}
+
 func NewAuthService(repo AuthRepositoryDB) AuthService {
 	return AuthService{
 		repo: repo,

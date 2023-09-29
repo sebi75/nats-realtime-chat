@@ -1,15 +1,11 @@
 package jwt
 
 import (
+	"auth-service/app/auth/domain"
 	"os"
 
 	"github.com/golang-jwt/jwt/v5"
 )
-
-type JwtService interface {
-	GenerateToken(userId string) (string, error)
-	ValidateToken(token string) (*jwt.Token, error)
-}
 
 type DefaultJwtService struct{}
 
@@ -27,6 +23,28 @@ func (s DefaultJwtService) GenerateAuthToken(userId string, accountId string) (s
 	return token, nil
 }
 
-func (s DefaultJwtService) ValidateToken(token string) (*jwt.Token, error) {
-	return nil, nil
+func (s DefaultJwtService) ValidateToken(token string) (bool, error) {
+	secret := []byte(os.Getenv("JWT_SECRET"))
+	_, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+		return secret, nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (s DefaultJwtService) DecodeToken(token string) (*domain.TokenPayload, error) {
+	secret := []byte(os.Getenv("JWT_SECRET"))
+	claims := jwt.MapClaims{}
+	_, err := jwt.ParseWithClaims(token, claims, func(token *jwt.Token) (interface{}, error) {
+		return secret, nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &domain.TokenPayload{
+		UserId:    claims["userId"].(string),
+		AccountId: claims["accountId"].(string),
+	}, nil
 }

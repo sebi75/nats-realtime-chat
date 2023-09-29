@@ -32,6 +32,7 @@ func Start() {
 
 	r.HandleFunc("/signup", authHandlers.Signup).Methods(http.MethodPost).Name("Signup")
 	r.HandleFunc("/signin", authHandlers.Signin).Methods(http.MethodPost).Name("Signin")
+	r.HandleFunc("/verify", authHandlers.Verify).Methods(http.MethodGet).Name("Verify")
 
 	http.ListenAndServe(":8083", hs.CORS(originsOk, headersOk, methodsOk)(r))
 }
