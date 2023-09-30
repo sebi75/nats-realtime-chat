@@ -12,13 +12,14 @@ import (
 
 func InitDbClient(config *env.Config) (*sqlx.DB, error) {
 	connectionString := config.DB.User + ":" + config.DB.Password + "@tcp(" + config.DB.Host + ":" + config.DB.Port + ")/" + config.DB.DatabaseName + "?parseTime=true"
+	logger.Info(connectionString)
 	dbClient, err := sqlx.Connect("mysql", connectionString)
 
-	dbClient.SetConnMaxLifetime(time.Minute * 1)
 	if err != nil {
 		logger.Error("InitDbClient::Failed to connect to database.", zap.Error(err))
 		return nil, err
 	}
+	dbClient.SetConnMaxLifetime(time.Minute * 1)
 
 	logger.Info("InitDbClient::Successfully connected to database.")
 

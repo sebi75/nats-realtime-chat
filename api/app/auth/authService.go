@@ -53,14 +53,19 @@ func (as *AuthService) Signup(body *io.ReadCloser) (*domain.SignupResponse, *err
 	authServiceUrl := as.config.AUTH.Url
 	signupUrl := authServiceUrl + "/signup"
 	req, err := http.Post(signupUrl, "application/json", *body)
+	if req.StatusCode == http.StatusBadRequest {
+		var res struct {
+			Message string `json:"message"`
+		}
+		err := json.NewDecoder(req.Body).Decode(&res)
+		if err != nil {
+			return nil, errs.NewBadRequestError("Invalid auth service request body")
+		}
+		return nil, errs.NewBadRequestError(res.Message)
+	}
 	if err != nil {
 		logger.Error(err.Error())
-		if req.StatusCode == http.StatusBadRequest {
-			// return the error message returned by the auth service
-			return nil, errs.NewBadRequestError(err.Error())
-		} else {
-			return nil, errs.NewUnexpectedError("Unexpected error")
-		}
+		return nil, errs.NewUnexpectedError("Unexpected error")
 	}
 	defer req.Body.Close()
 

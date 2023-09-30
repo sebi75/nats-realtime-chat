@@ -20,6 +20,11 @@ func (ah AuthHandlers) Signup(w http.ResponseWriter, request *http.Request) {
 		utils.ResponseWriter(w, resErrr.Code, resErrr.AsMessage())
 		return
 	}
+	validationErr := signupRequest.Validate()
+	if err != nil {
+		utils.ResponseWriter(w, validationErr.Code, validationErr.AsMessage())
+		return
+	}
 	newUser, serviceErr := ah.service.Signup(&signupRequest)
 	if serviceErr != nil {
 		utils.ResponseWriter(w, serviceErr.Code, serviceErr.AsMessage())
@@ -35,6 +40,11 @@ func (ah AuthHandlers) Signin(w http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		resErr := errs.NewBadRequestError("Invalid request body")
 		utils.ResponseWriter(w, resErr.Code, resErr.AsMessage())
+		return
+	}
+	validationErr := signinRequest.Validate()
+	if validationErr != nil {
+		utils.ResponseWriter(w, validationErr.Code, validationErr.AsMessage())
 		return
 	}
 	token, serviceErr := ah.service.Signin(&signinRequest)
