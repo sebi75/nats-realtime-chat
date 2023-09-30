@@ -26,22 +26,30 @@ type DBConfig struct {
 	DatabaseName string
 }
 
+type AUTHConfig struct {
+	Url string
+}
+
 type Config struct {
-	NATS NATSConfig
-	DB   DBConfig
+	NATS *NATSConfig
+	DB   *DBConfig
+	AUTH *AUTHConfig
 }
 
 func GetConfig() *Config {
 	return &Config{
-		NATS: NATSConfig{
+		NATS: &NATSConfig{
 			Url: os.Getenv("NATS_URL"),
 		},
-		DB: DBConfig{
+		DB: &DBConfig{
 			Host:         os.Getenv("DB_HOST"),
 			Port:         os.Getenv("DB_PORT"),
 			User:         os.Getenv("DB_USER"),
 			Password:     os.Getenv("DB_PASSWORD"),
 			DatabaseName: os.Getenv("DB_NAME"),
+		},
+		AUTH: &AUTHConfig{
+			Url: os.Getenv("AUTH_SERVICE_URL"),
 		},
 	}
 }
@@ -69,6 +77,10 @@ func (c *Config) ConfigSanityCheck() {
 
 	if c.DB.DatabaseName == "" {
 		log.Fatal("DB_NAME is not set")
+	}
+
+	if c.AUTH.Url == "" {
+		log.Fatal("AUTH_SERVICE_URL is not set")
 	}
 
 	logger.Info("Environment variables sanity check passed.")

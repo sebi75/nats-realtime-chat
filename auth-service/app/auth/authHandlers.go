@@ -51,11 +51,11 @@ func (ah AuthHandlers) Signin(w http.ResponseWriter, request *http.Request) {
 }
 
 func (ah AuthHandlers) Verify(w http.ResponseWriter, request *http.Request) {
-	authorization := request.Header.Get("Authorization")
-	if authorization == "" {
-		utils.ResponseWriter(w, http.StatusBadRequest, "Authorization header is missing!")
+	queryParams := request.URL.Query()
+	token := queryParams.Get("token")
+	if token == "" {
+		utils.ResponseWriter(w, http.StatusBadRequest, "Token is missing!")
 	}
-	token := authorization[7:]
 	tokenPayload, err := ah.service.Verify(token)
 	if err != nil {
 		utils.ResponseWriter(w, err.Code, err.AsMessage())

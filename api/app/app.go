@@ -1,6 +1,7 @@
 package app
 
 import (
+	"api/app/auth"
 	"api/app/connect"
 	"api/app/ping"
 	"api/env"
@@ -25,13 +26,18 @@ func Start() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
+	authService := auth.NewAuthService(config)
+	authHandler := auth.NewAuthHandlers(authService)
 	connectHandler, err := connect.NewConnectHandler()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	router.HandleFunc("/ping", ping.Ping).Methods(http.MethodGet)
-	router.HandleFunc("/connect", connectHandler.Connect).Methods(http.MethodGet)
+	router.HandleFunc("/ping", ping.Ping).Methods(http.MethodGet).Name("ping")
+	router.HandleFunc("/connect", connectHandler.Connect).Methods(http.MethodGet).Name("connect")
+	router.HandleFunc("auth/login", authHandler.Signin).Methods(http.MethodPost).Name("login")
+	router.HandleFunc("/auth/signup", authHandler.Signup).Methods(http.MethodPost).Name("signup")
+	router.HandleFunc("/auth/verify", authHandler.Verify).Methods(http.MethodGet).Name("verify")
 
 	http.ListenAndServe(":8080", handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }
