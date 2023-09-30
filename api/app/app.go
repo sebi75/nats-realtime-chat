@@ -35,7 +35,7 @@ func Start() {
 
 	router.HandleFunc("/ping", ping.Ping).Methods(http.MethodGet).Name("ping")
 	router.HandleFunc("/connect", connectHandler.Connect).Methods(http.MethodGet).Name("connect")
-	router.HandleFunc("auth/login", authHandler.Signin).Methods(http.MethodPost).Name("login")
+	router.HandleFunc("/auth/login", authHandler.Signin).Methods(http.MethodPost).Name("login")
 	router.HandleFunc("/auth/signup", authHandler.Signup).Methods(http.MethodPost).Name("signup")
 	router.HandleFunc("/auth/verify", authHandler.Verify).Methods(http.MethodGet).Name("verify")
 
