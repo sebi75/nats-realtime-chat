@@ -7,6 +7,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
+	"go.uber.org/zap"
 )
 
 func InitDbClient(config *env.Config) (*sqlx.DB, error) {
@@ -15,7 +16,7 @@ func InitDbClient(config *env.Config) (*sqlx.DB, error) {
 
 	dbClient.SetConnMaxLifetime(time.Minute * 1)
 	if err != nil {
-		logger.Error("InitDbClient::Failed to connect to database.")
+		logger.Error("InitDbClient::Failed to connect to database.", zap.Error(err))
 		return nil, err
 	}
 
