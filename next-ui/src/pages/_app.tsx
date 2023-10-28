@@ -1,11 +1,8 @@
 import { type AppType } from "next/app";
 import "@/styles/globals.css";
 import { useState } from "react";
-import {
-  QueryClient,
-  QueryClientProvider,
-  // Hydrate,
-} from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Toaster } from "@/components/ui/toaster";
 
 const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
   const [queryClient] = useState(
@@ -21,9 +18,8 @@ const MyApp: AppType = ({ Component, pageProps: { ...pageProps } }) => {
   );
   return (
     <QueryClientProvider client={queryClient}>
-      {/* <Hydrate state={pageProps.dehydratedState}> */}
       <Component {...pageProps} />
-      {/* </Hydrate> */}
+      <Toaster />
     </QueryClientProvider>
   );
 };

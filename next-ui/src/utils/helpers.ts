@@ -47,9 +47,3 @@ export const fetcher = async <T>(
 export const getServerURL = () => {
   return "http://localhost:8080";
 };
-
-export const restService = {
-  get: async (path: string) => {
-    return fetcher(path, HTTPMethod.GET);
-  },
-};

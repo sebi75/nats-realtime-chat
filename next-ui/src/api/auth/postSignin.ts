@@ -13,5 +13,7 @@ export interface SigninResponse {
 
 export const postSignin = async (payload: SigninRequest) => {
   const endpoint = `${ENDPOINT_AUTH}/${ENDPOINT_LOGIN}`;
-  return restService.post<SigninResponse, SigninRequest>(endpoint, payload);
+  return restService.post<SigninResponse, SigninRequest>(endpoint, payload, {
+    authorized: false,
+  });
 };

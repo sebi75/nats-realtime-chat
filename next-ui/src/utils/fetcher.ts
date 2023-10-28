@@ -14,7 +14,7 @@ export const fetcher = async <T>(
   options: RequestOptions
 ): Promise<T> => {
   const { authorized, ...rest } = options;
-  const url = `${env.API_URL}/${endpoint}`;
+  const url = `${env.NEXT_PUBLIC_API_URL}/${endpoint}`;
 
   try {
     const headers = new Headers();
@@ -30,6 +30,7 @@ export const fetcher = async <T>(
     for (const [key, value] of Object.entries(rest?.headers || {})) {
       headers.set(key, (value as string) ?? "");
     }
+    console.log({ rest, headers });
     const result = await fetch(url, {
       ...rest,
       headers,
@@ -59,7 +60,11 @@ export const restService = {
     payload: U,
     options: RequestOptions = { method: "POST", authorized: true }
   ) => {
-    return fetcher<T>(endpoint, { ...options, body: JSON.stringify(payload) });
+    return fetcher<T>(endpoint, {
+      body: JSON.stringify(payload),
+      method: "POST",
+      ...options,
+    });
   },
   put: <T, U>(
     endpoint: string,

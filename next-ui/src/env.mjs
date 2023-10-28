@@ -8,7 +8,6 @@ export const env = createEnv({
    */
   server: {
     NODE_ENV: z.enum(["development", "test", "production"]),
-    API_URL: z.string(),
     NEXTAUTH_SECRET:
       process.env.NODE_ENV === "production"
         ? z.string().min(1)
@@ -22,6 +21,7 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
+    NEXT_PUBLIC_API_URL: z.string().min(1),
   },
 
   /**
@@ -30,8 +30,8 @@ export const env = createEnv({
    */
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
-    API_URL: process.env.API_URL,
     NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

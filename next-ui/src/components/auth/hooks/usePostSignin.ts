@@ -1,16 +1,24 @@
-import { postSignin, type SigninRequest } from "@/api/auth/postSignin";
+import {
+  postSignin,
+  type SigninRequest,
+  type SigninResponse,
+} from "@/api/auth/postSignin";
 import { useToast } from "@/components/ui/use-toast";
 import { useMutation } from "@tanstack/react-query";
 
-export const usePostSignin = (params: SigninRequest) => {
+export const usePostSignin = () => {
   const toast = useToast();
-  return useMutation(() => postSignin(params), {
-    onError: (error: string | undefined) => {
-      toast.toast({
-        title: "Error",
-        description: error ?? "Something went wrong",
-        variant: "destructive",
-      });
-    },
-  });
+  return useMutation<SigninResponse, Error, SigninRequest>(
+    (payload) => postSignin(payload),
+    {
+      onError: (error) => {
+        console.log(error);
+        toast.toast({
+          title: "Error",
+          description: error.message ?? "Something went wrong",
+          variant: "destructive",
+        });
+      },
+    }
+  );
 };

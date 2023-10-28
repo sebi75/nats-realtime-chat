@@ -1,10 +1,14 @@
 import { SigninForm } from "@/components/auth/SigninForm";
-import { GetServerSideProps, GetServerSidePropsContext } from "next";
+import { CustomHead } from "@/components/common/CustomHead";
+import { type GetServerSideProps, type GetServerSidePropsContext } from "next";
 
 export default function SigninPage() {
   return (
     <>
-      <SigninForm />
+      <CustomHead title="Signin" />
+      <div className="flex min-h-screen items-center justify-center">
+        <SigninForm />
+      </div>
     </>
   );
 }
