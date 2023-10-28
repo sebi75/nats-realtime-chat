@@ -21,7 +21,7 @@ func (as *AuthService) Login(signinRequest *domain.SigninRequest) (*domain.Signi
 		return nil, validateErr
 	}
 	authServiceUrl := as.config.AUTH.Url
-	loginUrl := authServiceUrl + "/login"
+	loginUrl := authServiceUrl + "/signin"
 	payload, err := json.Marshal(signinRequest)
 	if err != nil {
 		logger.Error(err.Error())
@@ -31,9 +31,18 @@ func (as *AuthService) Login(signinRequest *domain.SigninRequest) (*domain.Signi
 	req, err := http.Post(loginUrl, "application/json", payloadReader)
 	if err != nil {
 		logger.Error(err.Error())
+		return nil, errs.NewUnexpectedError("Unexpected error")
+	}
+	if req.StatusCode != http.StatusOK {
+		var errorMessage errs.AppError
+		decodeErr := json.NewDecoder(req.Body).Decode(&errorMessage)
+		if decodeErr != nil {
+			return nil, errs.NewUnexpectedError("Unexpected error")
+		}
+		logger.Error(errorMessage.Message)
 		if req.StatusCode == http.StatusBadRequest || req.StatusCode == http.StatusUnauthorized {
 			// return the error message returned by auth-service
-			return nil, errs.NewBadRequestError(err.Error())
+			return nil, errs.NewBadRequestError(errorMessage.Message)
 		} else {
 			return nil, errs.NewUnexpectedError("Unexpected error")
 		}
@@ -79,21 +88,30 @@ func (as *AuthService) Signup(body *io.ReadCloser) (*domain.SignupResponse, *err
 	return &signupResponse, nil
 }
 
-func (as AuthService) Verify(token string) (*domain.TokenPayload, *errs.AppError) {
+func (as AuthService) Verify(token string) (*domain.VerifyResponse, *errs.AppError) {
 	authServiceUrl := as.config.AUTH.Url
 	verifyUrl := authServiceUrl + "/verify" + "?token=" + token
 	req, err := http.Get(verifyUrl)
 	if err != nil {
-		if req.StatusCode == http.StatusBadRequest {
+		logger.Error(err.Error())
+		return nil, errs.NewUnexpectedError("Unexpected error")
+	}
+	if req.StatusCode != http.StatusOK {
+		var errorMessage errs.AppError
+		decodeErr := json.NewDecoder(req.Body).Decode(&errorMessage)
+		if decodeErr != nil {
+			return nil, errs.NewUnexpectedError("Unexpected error")
+		}
+		if req.StatusCode == http.StatusBadRequest || req.StatusCode == http.StatusUnauthorized {
 			// return the error message returned by the auth service
-			return nil, errs.NewBadRequestError(err.Error())
+			return nil, errs.NewBadRequestError(errorMessage.Message)
 		} else {
 			return nil, errs.NewUnexpectedError("Unexpected error")
 		}
 	}
 	defer req.Body.Close()
 
-	var verifyResponse domain.TokenPayload
+	var verifyResponse domain.VerifyResponse
 	err = json.NewDecoder(req.Body).Decode(&verifyResponse)
 	if err != nil {
 		logger.Error(err.Error())

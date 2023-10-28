@@ -8,13 +8,13 @@ import { useMutation } from "@tanstack/react-query";
 
 export const usePostSignup = () => {
   const toast = useToast();
-  return useMutation<SignupResponse, unknown, SignupRequest>(
+  return useMutation<SignupResponse, Error, SignupRequest>(
     (payload) => postSignup(payload),
     {
-      onError: (error) => {
+      onError: (error: Error) => {
         toast.toast({
           title: "Error",
-          description: (error as string) ?? "Something went wrong",
+          description: error.message ?? "Something went wrong",
           variant: "destructive",
         });
       },

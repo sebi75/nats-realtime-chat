@@ -30,7 +30,6 @@ export const fetcher = async <T>(
     for (const [key, value] of Object.entries(rest?.headers || {})) {
       headers.set(key, (value as string) ?? "");
     }
-    console.log({ rest, headers });
     const result = await fetch(url, {
       ...rest,
       headers,
@@ -44,7 +43,7 @@ export const fetcher = async <T>(
     }
   } catch (error) {
     console.error(error);
-    throw new Error("Something went wrong!");
+    throw error;
   }
 };
 

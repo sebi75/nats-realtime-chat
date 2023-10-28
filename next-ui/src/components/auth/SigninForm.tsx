@@ -53,7 +53,7 @@ export const SigninForm: FunctionComponent = () => {
               queryKey: [ENDPOINT_AUTH, ENDPOINT_VERIFY],
             });
           }
-          router.push("/explore");
+          router.push(`/explore`);
         },
       }
     );
@@ -67,13 +67,17 @@ export const SigninForm: FunctionComponent = () => {
       >
         <FormField
           control={signinFormMethods.control}
-          name="email"
+          name="username"
           render={({ field }) => {
             return (
               <FormItem>
-                <FormLabel htmlFor="email">Email</FormLabel>
+                <FormLabel htmlFor="email">Username</FormLabel>
                 <FormControl>
-                  <Input {...field} id="email" placeholder="Enter email" />
+                  <Input
+                    {...field}
+                    id="username"
+                    placeholder="Enter username"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

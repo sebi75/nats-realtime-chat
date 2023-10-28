@@ -15,5 +15,7 @@ export interface SignupResponse extends User {
 
 export const postSignup = async (payload: SignupRequest) => {
   const endpoint = `${ENDPOINT_AUTH}/${ENDPOINT_SIGNUP}`;
-  return restService.post<SignupResponse, SignupRequest>(endpoint, payload);
+  return restService.post<SignupResponse, SignupRequest>(endpoint, payload, {
+    authorized: false,
+  });
 };
