@@ -5,7 +5,7 @@ import { type FunctionComponent } from "react";
 import { type z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { signinFormSchema } from "./schemas";
+import { signupFormSchema } from "./schemas";
 import {
   Form,
   FormControl,
@@ -16,57 +16,54 @@ import {
 } from "@/components/ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { usePostSignin } from "./hooks";
+import { usePostSignup } from "./hooks";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
-import { ENDPOINT_AUTH, ENDPOINT_VERIFY } from "@/types/endpoints";
 import { CustomLink } from "../common/CustomLink";
+import { useToast } from "../ui/use-toast";
 
-export type SigninFormType = z.infer<typeof signinFormSchema>;
+export type SignupFormType = z.infer<typeof signupFormSchema>;
 
-export const SigninForm: FunctionComponent = () => {
+export const SignupForm: FunctionComponent = () => {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const signinFormMethods = useForm<SigninFormType>({
+  const { toast } = useToast();
+  const signupFormMethods = useForm<SignupFormType>({
     defaultValues: {
       email: undefined,
       username: undefined,
       password: "",
     },
-    resolver: zodResolver(signinFormSchema),
+    resolver: zodResolver(signupFormSchema),
     mode: "onChange",
   });
-  const { mutate } = usePostSignin();
-  const onSubmit = (data: SigninFormType) => {
-    mutate(
+  const { mutate: signup } = usePostSignup();
+  const onSubmit = (data: SignupFormType) => {
+    signup(
       {
         password: data.password,
         email: data.email,
         username: data.username,
       },
       {
-        onSuccess: (data) => {
-          const { token } = data;
-          if (token) {
-            localStorage.setItem("token", token);
-            queryClient.invalidateQueries({
-              queryKey: [ENDPOINT_AUTH, ENDPOINT_VERIFY],
-            });
-          }
-          router.push("/explore");
+        onSuccess: () => {
+          toast({
+            title: "Signup success",
+            description: "Please signin to continue",
+            variant: "default",
+          });
+          router.push("/auth/signin");
         },
       }
     );
   };
 
   return (
-    <Form {...signinFormMethods}>
+    <Form {...signupFormMethods}>
       <form
-        onSubmit={signinFormMethods.handleSubmit(onSubmit)}
+        onSubmit={signupFormMethods.handleSubmit(onSubmit)}
         className="flex flex-col items-center justify-center gap-5 space-y-3 rounded-md border p-5"
       >
         <FormField
-          control={signinFormMethods.control}
+          control={signupFormMethods.control}
           name="email"
           render={({ field }) => {
             return (
@@ -81,7 +78,26 @@ export const SigninForm: FunctionComponent = () => {
           }}
         />
         <FormField
-          control={signinFormMethods.control}
+          control={signupFormMethods.control}
+          name="username"
+          render={({ field }) => {
+            return (
+              <FormItem>
+                <FormLabel htmlFor="email">Username</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    id="username"
+                    placeholder="Enter Username"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            );
+          }}
+        />
+        <FormField
+          control={signupFormMethods.control}
           name="password"
           render={({ field }) => {
             return (
@@ -104,14 +120,14 @@ export const SigninForm: FunctionComponent = () => {
           href="/auth/signin"
           className="my-2 underline underline-offset-2"
         >
-          Don&apos;t have an account? Signup
+          Already have an account? Signin
         </CustomLink>
         <Button
           type="submit"
-          onClick={signinFormMethods.handleSubmit(onSubmit)}
+          onClick={signupFormMethods.handleSubmit(onSubmit)}
           variant={"default"}
         >
-          Signin
+          Signup
         </Button>
       </form>
     </Form>
