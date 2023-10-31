@@ -102,7 +102,6 @@ func (as AuthService) Verify(token string) (*domain.VerifyResponse, *errs.AppErr
 		if decodeErr != nil {
 			return nil, errs.NewUnexpectedError("Unexpected error")
 		}
-		//test
 		if req.StatusCode == http.StatusBadRequest || req.StatusCode == http.StatusUnauthorized {
 			// return the error message returned by the auth service
 			return nil, errs.NewBadRequestError(errorMessage.Message)
