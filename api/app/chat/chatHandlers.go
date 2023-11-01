@@ -1,7 +1,8 @@
-package connect
+package chat
 
 import (
-	"api/pkg/nats"
+	"api/app/chat/domain"
+	"api/app/messageBroker"
 	"api/utils/logger"
 	"encoding/json"
 	"errors"
@@ -11,18 +12,9 @@ import (
 	"go.uber.org/zap"
 )
 
-type message struct {
-	Text string `json:"text"`
-}
-
-type reqParamsInit struct {
-	Username  string `json:"username"`
-	ChannelId string `json:"channelId"`
-}
-
 type ConnectHandler struct {
-	upgrader   websocket.Upgrader
-	natsClient *nats.Client
+	upgrader      websocket.Upgrader
+	messageBroker *messageBroker.MessageBroker
 }
 
 func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +25,7 @@ func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	_, err = ch.getReqParams(r)
+	// reqParamsInit, err := ch.getReqParams(r)
 	if err != nil {
 		if err == errConnClosed {
 			return
@@ -48,7 +40,12 @@ func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
 	})
 
 	defer conn.Close()
-
+	// messageChan := make(chan domain.Message)
+	{
+		// set up the nats subscription
+		// chatSubject := "chat." + reqParamsInit.ChannelId
+		// close, err := ch.natsClient.Subscribe(chatSubject)
+	}
 	for {
 		_, reader, err := conn.NextReader()
 		if err != nil {
@@ -72,7 +69,7 @@ func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
 
 		switch bigMessage.Type {
 		case "chatMsg":
-			var msg message
+			var msg domain.Message
 
 			err := json.Unmarshal(bigMessage.Data, &msg)
 			if err != nil {
@@ -93,22 +90,10 @@ func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
 
 var errConnClosed = errors.New("Websocket connection closed")
 
-func (reqInitParams *reqParamsInit) Validate() error {
-	if reqInitParams.Username == "" {
-		return errors.New("Username is required")
-	}
+func (ch *ConnectHandler) getReqParams(r *http.Request) (*domain.ReqParamsInit, error) {
+	var req *domain.ReqParamsInit
 
-	if reqInitParams.ChannelId == "" {
-		return errors.New("ChannelId is required")
-	}
-
-	return nil
-}
-
-func (ch *ConnectHandler) getReqParams(r *http.Request) (*reqParamsInit, error) {
-	var req *reqParamsInit
-
-	req = &reqParamsInit{
+	req = &domain.ReqParamsInit{
 		Username:  r.URL.Query().Get("username"),
 		ChannelId: r.URL.Query().Get("channelId"),
 	}
@@ -126,9 +111,9 @@ func writeErr(conn *websocket.Conn, err error) {
 	logger.Error(err.Error())
 }
 
-func NewConnectHandler(natsClient *nats.Client) (*ConnectHandler, error) {
+func NewChatHandler(mb *messageBroker.MessageBroker) (*ConnectHandler, error) {
 	return &ConnectHandler{
-		natsClient: natsClient,
+		messageBroker: mb,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024, // 1kb
 			WriteBufferSize: 1024, // 1kb

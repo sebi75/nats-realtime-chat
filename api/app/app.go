@@ -2,7 +2,8 @@ package app
 
 import (
 	"api/app/auth"
-	"api/app/connect"
+	"api/app/chat"
+	"api/app/messageBroker"
 	"api/app/ping"
 	"api/env"
 	"api/pkg/nats"
@@ -29,9 +30,10 @@ func Start() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
+	messageBroker := messageBroker.New(natsClient)
 	authService := auth.NewAuthService(config)
 	authHandler := auth.NewAuthHandlers(authService)
-	connectHandler, err := connect.NewConnectHandler(natsClient)
+	connectHandler, err := chat.NewChatHandler(messageBroker)
 	if err != nil {
 		log.Fatal(err)
 	}
