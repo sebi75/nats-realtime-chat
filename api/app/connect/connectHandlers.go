@@ -1,6 +1,7 @@
 package connect
 
 import (
+	"api/pkg/nats"
 	"api/utils/logger"
 	"encoding/json"
 	"errors"
@@ -20,7 +21,8 @@ type reqParamsInit struct {
 }
 
 type ConnectHandler struct {
-	upgrader websocket.Upgrader
+	upgrader   websocket.Upgrader
+	natsClient *nats.Client
 }
 
 func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
@@ -124,8 +126,9 @@ func writeErr(conn *websocket.Conn, err error) {
 	logger.Error(err.Error())
 }
 
-func NewConnectHandler() (*ConnectHandler, error) {
+func NewConnectHandler(natsClient *nats.Client) (*ConnectHandler, error) {
 	return &ConnectHandler{
+		natsClient: natsClient,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024, // 1kb
 			WriteBufferSize: 1024, // 1kb

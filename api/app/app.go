@@ -5,6 +5,8 @@ import (
 	"api/app/connect"
 	"api/app/ping"
 	"api/env"
+	"api/pkg/nats"
+	"api/utils/logger"
 	"log"
 	"net/http"
 
@@ -16,10 +18,11 @@ import (
 func Start() {
 	config := env.GetConfig()
 	config.ConfigSanityCheck()
-	// _, err := nats.New(cfg.NATS.Url)
-	// if err != nil {
-	// panic(err)
-	// }
+	natsClient, err := nats.New(config.NATS.Url)
+	if err != nil {
+		logger.Error("Error connecting to the NATS Client")
+		panic(err)
+	}
 	router := mux.NewRouter()
 
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
@@ -28,7 +31,7 @@ func Start() {
 
 	authService := auth.NewAuthService(config)
 	authHandler := auth.NewAuthHandlers(authService)
-	connectHandler, err := connect.NewConnectHandler()
+	connectHandler, err := connect.NewConnectHandler(natsClient)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,5 +42,5 @@ func Start() {
 	router.HandleFunc("/auth/signup", authHandler.Signup).Methods(http.MethodPost).Name("signup")
 	router.HandleFunc("/auth/verify", authHandler.Verify).Methods(http.MethodGet).Name("verify")
 
-	http.ListenAndServe(":8080", handlers.CORS(originsOk, headersOk, methodsOk)(router))
+	http.ListenAndServe(":8085", handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }

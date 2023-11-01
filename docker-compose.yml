@@ -20,13 +20,13 @@ services:
     image: auth-service
     env_file:
       - ./auth-service/.env
-  # nats:
-  #   build:
-  #     context: ./nats
-  #     dockerfile: Dockerfile
-  #   image: nats
-  #   ports:
-  #     - 4222:4222
+  nats:
+    build:
+      context: ./nats
+      dockerfile: Dockerfile
+    image: nats
+    ports:
+      - 4222:4222
   # history-service:
   #   build:
   #     context: ./history-service
