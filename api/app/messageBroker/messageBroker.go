@@ -37,8 +37,11 @@ func (mb *MessageBroker) Subscribe(subject string, uuid string, c chan *domain.M
 	})
 
 	if err != nil {
+		logger.Error("Error subscribing to the NATS broker", zap.Error(err))
 		return nil, err
 	}
+	logger.Info("Subscribed to the NATS broker")
+
 	return func() {
 		closer.Unsubscribe()
 	}, nil

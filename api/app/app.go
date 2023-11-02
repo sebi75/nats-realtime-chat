@@ -44,5 +44,5 @@ func Start() {
 	router.HandleFunc("/auth/signup", authHandler.Signup).Methods(http.MethodPost).Name("signup")
 	router.HandleFunc("/auth/verify", authHandler.Verify).Methods(http.MethodGet).Name("verify")
 
-	http.ListenAndServe(":8085", handlers.CORS(originsOk, headersOk, methodsOk)(router))
+	http.ListenAndServe(":8080", handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }

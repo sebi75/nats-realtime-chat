@@ -40,7 +40,6 @@ func (a *Agent) HandleConnection(reqParamsInit *domain.ReqParamsInit) {
 		a.closed = true
 		return nil
 	})
-	defer a.conn.Close()
 	a.channelUUID = reqParamsInit.ChannelId
 
 	messageChan := make(chan *domain.Message)
@@ -68,11 +67,11 @@ func (a *Agent) loop(m chan *domain.Message) {
 				return
 			}
 			_, reader, err := a.conn.NextReader()
+			// a.conn.ReadMessage()
 			if err != nil {
-				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					return
-				}
-				writeErr(a.conn, "Error getting the next reader")
+				logger.Error(err.Error())
+				writeErr(a.conn, err.Error())
+				continue
 			}
 
 			a.handleClientMessage(reader)
@@ -88,7 +87,6 @@ func (a *Agent) loop(m chan *domain.Message) {
 		for {
 			select {
 			case message := <-m:
-				logger.Info("Sending message to the client")
 				err := a.conn.WriteJSON(message)
 				if err != nil {
 					writeErr(a.conn, "Error sending the message")
