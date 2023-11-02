@@ -1,20 +1,21 @@
 package chat
 
 import (
+	"api/app/chat/agent"
 	"api/app/chat/domain"
 	"api/app/messageBroker"
+	"api/utils"
 	"api/utils/logger"
-	"encoding/json"
 	"errors"
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"go.uber.org/zap"
 )
 
 type ConnectHandler struct {
 	upgrader      websocket.Upgrader
 	messageBroker *messageBroker.MessageBroker
+	closeFunc     func()
 }
 
 func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
@@ -25,67 +26,14 @@ func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
-	// reqParamsInit, err := ch.getReqParams(r)
+	reqParamsInit, err := ch.getReqParams(r)
 	if err != nil {
-		if err == errConnClosed {
-			return
-		}
-		writeErr(conn, err)
+		logger.Error(err.Error())
+		utils.ResponseWriter(w, http.StatusBadRequest, err.Error())
 		return
 	}
-
-	conn.SetCloseHandler(func(code int, text string) error {
-		logger.Info("Connection closed")
-		return nil
-	})
-
-	defer conn.Close()
-	// messageChan := make(chan domain.Message)
-	{
-		// set up the nats subscription
-		// chatSubject := "chat." + reqParamsInit.ChannelId
-		// close, err := ch.natsClient.Subscribe(chatSubject)
-	}
-	for {
-		_, reader, err := conn.NextReader()
-		if err != nil {
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				return
-			}
-			writeErr(conn, err)
-		}
-
-		logger.Info("Received message...")
-		var bigMessage struct {
-			Type string          `json:"type"`
-			Data json.RawMessage `json:"data,omitempty"`
-		}
-
-		err = json.NewDecoder(reader).Decode(&bigMessage)
-		if err != nil {
-			writeErr(conn, err)
-			return
-		}
-
-		switch bigMessage.Type {
-		case "chatMsg":
-			var msg domain.Message
-
-			err := json.Unmarshal(bigMessage.Data, &msg)
-			if err != nil {
-				writeErr(conn, err)
-				return
-			}
-
-			logger.Info("Received message", zap.String("text", msg.Text))
-
-			err = conn.WriteJSON(json.RawMessage(`{"message": "Hello from the server"}`))
-			if err != nil {
-				writeErr(conn, err)
-				return
-			}
-		}
-	}
+	agent := agent.New(conn, ch.messageBroker)
+	agent.HandleConnection(reqParamsInit)
 }
 
 var errConnClosed = errors.New("Websocket connection closed")
@@ -96,6 +44,7 @@ func (ch *ConnectHandler) getReqParams(r *http.Request) (*domain.ReqParamsInit, 
 	req = &domain.ReqParamsInit{
 		Username:  r.URL.Query().Get("username"),
 		ChannelId: r.URL.Query().Get("channelId"),
+		UUID:      r.URL.Query().Get("uuid"),
 	}
 
 	err := req.Validate()
@@ -106,11 +55,6 @@ func (ch *ConnectHandler) getReqParams(r *http.Request) (*domain.ReqParamsInit, 
 	return req, nil
 }
 
-func writeErr(conn *websocket.Conn, err error) {
-	conn.WriteMessage(websocket.TextMessage, []byte(err.Error()))
-	logger.Error(err.Error())
-}
-
 func NewChatHandler(mb *messageBroker.MessageBroker) (*ConnectHandler, error) {
 	return &ConnectHandler{
 		messageBroker: mb,
@@ -118,7 +62,7 @@ func NewChatHandler(mb *messageBroker.MessageBroker) (*ConnectHandler, error) {
 			ReadBufferSize:  1024, // 1kb
 			WriteBufferSize: 1024, // 1kb
 			CheckOrigin: func(r *http.Request) bool {
-				// return r.Header.Get("Origin") == "http://localhost:5173" // web app
+				// return r.Header.Get("Origin") == "http://localhost:3000" // web app
 				return true
 			},
 		},

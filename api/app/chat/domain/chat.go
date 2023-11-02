@@ -19,6 +19,7 @@ func (m *Message) Encode() ([]byte, error) {
 
 type ReqParamsInit struct {
 	Username  string `json:"username"`
+	UUID      string `json:"uuid,omitempty"`
 	ChannelId string `json:"channelId"`
 }
 
