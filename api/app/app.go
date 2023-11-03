@@ -33,7 +33,7 @@ func Start() {
 	messageBroker := messageBroker.New(natsClient)
 	authService := auth.NewAuthService(config)
 	authHandler := auth.NewAuthHandlers(authService)
-	connectHandler, err := chat.NewChatHandler(messageBroker)
+	connectHandler, err := chat.NewChatHandler(messageBroker, authService)
 	if err != nil {
 		log.Fatal(err)
 	}

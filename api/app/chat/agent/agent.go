@@ -17,6 +17,7 @@ type msgT int
 type Agent struct {
 	conn          *websocket.Conn
 	messageBroker *messageBroker.MessageBroker
+	Uuid          string
 	channelUUID   string
 	closeSub      func()
 	closed        bool

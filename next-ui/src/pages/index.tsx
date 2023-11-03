@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { type NextPage } from "next";
@@ -23,7 +24,7 @@ const Home: NextPage = () => {
     if (!ws) {
       console.log("creating websocket....");
       const ws = new WebSocket(
-        "ws://localhost:8080/connect?username=sebastian&channelId=12345"
+        "ws://localhost:8085/connect?username=sebastian&channelId=12345&uuid=123456"
       );
       console.log(ws);
       setWs(ws);
@@ -41,7 +42,7 @@ const Home: NextPage = () => {
         console.log("websocket message received", msg);
       };
     }
-    // pingAPI();
+    pingAPI();
   }, [ws]);
 
   const handleSendMessage = () => {

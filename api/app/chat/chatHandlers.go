@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"api/app/auth"
 	"api/app/chat/agent"
 	"api/app/chat/domain"
 	"api/app/messageBroker"
@@ -14,12 +15,22 @@ import (
 
 type ConnectHandler struct {
 	upgrader      websocket.Upgrader
+	authService   *auth.AuthService
 	messageBroker *messageBroker.MessageBroker
 	closeFunc     func()
 }
 
 func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
-	logger.Info("Received connection request")
+	token := r.Header.Get("Authorization")[7:]
+	if token == "" {
+		utils.ResponseWriter(w, http.StatusBadRequest, "Token is required")
+		return
+	}
+	verifyRequestResponse, appErr := ch.authService.Verify(token)
+	if appErr != nil {
+		utils.ResponseWriter(w, appErr.Code, appErr.Message)
+		return
+	}
 	conn, err := ch.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		logger.Error(err.Error())
@@ -33,6 +44,7 @@ func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	agent := agent.New(conn, ch.messageBroker)
+	agent.Uuid = verifyRequestResponse.Id
 	agent.HandleConnection(reqParamsInit)
 }
 
@@ -55,9 +67,10 @@ func (ch *ConnectHandler) getReqParams(r *http.Request) (*domain.ReqParamsInit, 
 	return req, nil
 }
 
-func NewChatHandler(mb *messageBroker.MessageBroker) (*ConnectHandler, error) {
+func NewChatHandler(mb *messageBroker.MessageBroker, as *auth.AuthService) (*ConnectHandler, error) {
 	return &ConnectHandler{
 		messageBroker: mb,
+		authService:   as,
 		upgrader: websocket.Upgrader{
 			ReadBufferSize:  1024, // 1kb
 			WriteBufferSize: 1024, // 1kb
