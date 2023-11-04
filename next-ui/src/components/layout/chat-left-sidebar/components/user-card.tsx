@@ -11,9 +11,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/router";
 
 type Props = {
   className?: string;
@@ -26,7 +26,23 @@ export const UserCard: FunctionComponent<Props> = ({
   className,
   username,
 }) => {
+  const router = useRouter();
   const avatarFallback = username.slice(0, 2).toUpperCase();
+
+  const handleSignout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        await router.push("/auth/login");
+      } else {
+        localStorage.removeItem("token");
+        await router.push("/auth/login");
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <Card className={cn("", className)}>
       <CardContent className="flex items-center justify-between gap-3 p-3">
@@ -49,19 +65,12 @@ export const UserCard: FunctionComponent<Props> = ({
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                Profile
-                <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                Settings
-                <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-              </DropdownMenuItem>
+              <DropdownMenuItem>Profile</DropdownMenuItem>
+              <DropdownMenuItem>Settings</DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              Log out
-              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            <DropdownMenuItem onClick={handleSignout}>
+              Sign out
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
