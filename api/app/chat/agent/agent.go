@@ -42,6 +42,7 @@ func (a *Agent) HandleConnection(reqParamsInit *domain.ReqParamsInit) {
 		return nil
 	})
 	a.channelUUID = reqParamsInit.ChannelId
+	a.Uuid = reqParamsInit.UUID
 
 	messageChan := make(chan *domain.Message)
 	{
@@ -122,6 +123,7 @@ func (a *Agent) handleClientMessage(reader io.Reader) {
 			writeErr(a.conn, "Error unmarshalling the message")
 			return
 		}
+		msg.FromUUID = a.Uuid
 		a.handleChatMessage(&msg)
 	}
 }

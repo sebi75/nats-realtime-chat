@@ -21,6 +21,7 @@ type ReqParamsInit struct {
 	Username  string `json:"username"`
 	UUID      string `json:"uuid,omitempty"`
 	ChannelId string `json:"channelId"`
+	Token     string `json:"token,omitempty"`
 }
 
 func (reqInitParams *ReqParamsInit) Validate() error {

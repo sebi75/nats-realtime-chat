@@ -21,12 +21,13 @@ type ConnectHandler struct {
 }
 
 func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
-	token := r.Header.Get("Authorization")[7:]
-	if token == "" {
-		utils.ResponseWriter(w, http.StatusBadRequest, "Token is required")
+	reqParamsInit, err := ch.getReqParams(r)
+	if err != nil {
+		logger.Error(err.Error())
+		utils.ResponseWriter(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	verifyRequestResponse, appErr := ch.authService.Verify(token)
+	_, appErr := ch.authService.Verify(reqParamsInit.Token)
 	if appErr != nil {
 		utils.ResponseWriter(w, appErr.Code, appErr.Message)
 		return
@@ -36,15 +37,8 @@ func (ch ConnectHandler) Connect(w http.ResponseWriter, r *http.Request) {
 		logger.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
-	reqParamsInit, err := ch.getReqParams(r)
-	if err != nil {
-		logger.Error(err.Error())
-		utils.ResponseWriter(w, http.StatusBadRequest, err.Error())
-		return
-	}
 	agent := agent.New(conn, ch.messageBroker)
-	agent.Uuid = verifyRequestResponse.Id
+	agent.Uuid = reqParamsInit.UUID
 	agent.HandleConnection(reqParamsInit)
 }
 
@@ -57,6 +51,7 @@ func (ch *ConnectHandler) getReqParams(r *http.Request) (*domain.ReqParamsInit, 
 		Username:  r.URL.Query().Get("username"),
 		ChannelId: r.URL.Query().Get("channelId"),
 		UUID:      r.URL.Query().Get("uuid"),
+		Token:     r.URL.Query().Get("token"),
 	}
 
 	err := req.Validate()
