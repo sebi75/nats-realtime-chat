@@ -18,7 +18,6 @@ export const useChatWebsocket = (channelId: string) => {
     );
     websocketConnection.current = ws;
 
-    //ass annotation for the data type
     ws.onmessage = (event) => {
       const data = event.data;
       setData(data as string);
@@ -29,20 +28,22 @@ export const useChatWebsocket = (channelId: string) => {
     };
   }, [channelId]);
 
-  // add a new type for message and more neccessary fields
-  const send = useCallback((message: string) => {
-    if (!websocketConnection.current) {
-      return;
-    }
-    const data = {
-      type: "chatMsg",
-      data: {
-        message: message,
-      },
-    };
+  const send = useCallback(
+    (message: string, options: Record<string, unknown>) => {
+      if (!websocketConnection.current) {
+        return;
+      }
+      const data = {
+        type: options.type,
+        data: {
+          message: message,
+        },
+      };
 
-    websocketConnection.current.send(JSON.stringify(data));
-  }, []);
+      websocketConnection.current.send(JSON.stringify(data));
+    },
+    []
+  );
 
   return { data, error, send };
 };
