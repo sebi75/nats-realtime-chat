@@ -5,7 +5,7 @@ import { type FunctionComponent } from "react";
 import { type z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { signupFormSchema } from "./schemas";
+import { signinFormSchema } from "./schemas";
 import {
   Form,
   FormControl,
@@ -16,69 +16,57 @@ import {
 } from "@/components/ui/form";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { usePostSignup } from "./hooks";
+import { usePostSignin } from "./hooks";
 import { useRouter } from "next/navigation";
-import { CustomLink } from "../common/CustomLink";
-import { useToast } from "../ui/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
+import { ENDPOINT_AUTH, ENDPOINT_VERIFY } from "@/types/endpoints";
+import { CustomLink } from "../common/custom-link";
 
-export type SignupFormType = z.infer<typeof signupFormSchema>;
+export type SigninFormType = z.infer<typeof signinFormSchema>;
 
-export const SignupForm: FunctionComponent = () => {
+export const SigninForm: FunctionComponent = () => {
   const router = useRouter();
-  const { toast } = useToast();
-  const signupFormMethods = useForm<SignupFormType>({
+  const queryClient = useQueryClient();
+  const signinFormMethods = useForm<SigninFormType>({
     defaultValues: {
       email: undefined,
       username: undefined,
       password: "",
     },
-    resolver: zodResolver(signupFormSchema),
+    resolver: zodResolver(signinFormSchema),
     mode: "onChange",
   });
-  const { mutate: signup } = usePostSignup();
-  const onSubmit = (data: SignupFormType) => {
-    signup(
+  const { mutate } = usePostSignin();
+  const onSubmit = (data: SigninFormType) => {
+    mutate(
       {
         password: data.password,
         email: data.email,
         username: data.username,
       },
       {
-        onSuccess: () => {
-          toast({
-            title: "Signup success",
-            description: "Please signin to continue",
-            variant: "default",
-          });
-          router.push("/auth/signin");
+        onSuccess: (data) => {
+          const { token } = data;
+          if (token) {
+            localStorage.setItem("token", token);
+            queryClient.invalidateQueries({
+              queryKey: [ENDPOINT_AUTH, ENDPOINT_VERIFY],
+            });
+          }
+          router.push(`/explore`);
         },
       }
     );
   };
 
   return (
-    <Form {...signupFormMethods}>
+    <Form {...signinFormMethods}>
       <form
-        onSubmit={signupFormMethods.handleSubmit(onSubmit)}
+        onSubmit={signinFormMethods.handleSubmit(onSubmit)}
         className="flex flex-col items-center justify-center gap-5 space-y-3 rounded-md border p-5"
       >
         <FormField
-          control={signupFormMethods.control}
-          name="email"
-          render={({ field }) => {
-            return (
-              <FormItem>
-                <FormLabel htmlFor="email">Email</FormLabel>
-                <FormControl>
-                  <Input {...field} id="email" placeholder="Enter email" />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            );
-          }}
-        />
-        <FormField
-          control={signupFormMethods.control}
+          control={signinFormMethods.control}
           name="username"
           render={({ field }) => {
             return (
@@ -88,7 +76,7 @@ export const SignupForm: FunctionComponent = () => {
                   <Input
                     {...field}
                     id="username"
-                    placeholder="Enter Username"
+                    placeholder="Enter username"
                   />
                 </FormControl>
                 <FormMessage />
@@ -97,7 +85,7 @@ export const SignupForm: FunctionComponent = () => {
           }}
         />
         <FormField
-          control={signupFormMethods.control}
+          control={signinFormMethods.control}
           name="password"
           render={({ field }) => {
             return (
@@ -120,14 +108,14 @@ export const SignupForm: FunctionComponent = () => {
           href="/auth/signin"
           className="my-2 underline underline-offset-2"
         >
-          Already have an account? Signin
+          Don&apos;t have an account? Signup
         </CustomLink>
         <Button
           type="submit"
-          onClick={signupFormMethods.handleSubmit(onSubmit)}
+          onClick={signinFormMethods.handleSubmit(onSubmit)}
           variant={"default"}
         >
-          Signup
+          Signin
         </Button>
       </form>
     </Form>

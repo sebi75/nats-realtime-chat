@@ -1,5 +1,5 @@
 import { useVerifyToken } from "@/components/auth/hooks";
-import { CustomHead } from "@/components/common/CustomHead";
+import { CustomHead } from "@/components/common/custom-head";
 import { ChatWrapper } from "@/components/layout/ChatWrapper";
 
 export default function Explore() {

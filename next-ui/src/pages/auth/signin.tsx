@@ -1,5 +1,5 @@
 import { SigninForm } from "@/components/auth/SigninForm";
-import { CustomHead } from "@/components/common/CustomHead";
+import { CustomHead } from "@/components/common/custom-head";
 import { type GetServerSideProps, type GetServerSidePropsContext } from "next";
 
 export default function SigninPage() {
