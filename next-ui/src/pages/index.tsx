@@ -19,16 +19,6 @@ const Home: NextPage = () => {
   const [uuid, setUuid] = useState<string>("");
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
-  // const pingAPI = async () => {
-  //   const path = "ping";
-  //   try {
-  //     const response = await fetcher<{ message: string }>(path, HTTPMethod.GET);
-  //     console.log(response.message);
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // };
-
   const handleConnect = () => {
     let token = localStorage.getItem("token");
     if (!token) token = "test-token";
@@ -66,11 +56,11 @@ const Home: NextPage = () => {
     ws.send(JSON.stringify(message));
   };
 
-  // const handleDisconnect = () => {
-  //   if (!ws || ws.readyState != ws.OPEN) return;
-  //   console.log("Disconnecting");
-  //   ws.close();
-  // };
+  const handleDisconnect = () => {
+    if (!ws || ws.readyState != ws.OPEN) return;
+    console.log("Disconnecting");
+    ws.close();
+  };
 
   return (
     <>

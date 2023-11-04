@@ -31,9 +31,10 @@ model User {
     username  String  @unique @map("username")
     imageUrl  String? @map("image_url")
 
-    account  Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
-    chats    ChatMember[]
-    messages Message[]
+    account   Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+    chats     ChatMember[]
+    messages  Message[]
+    interests Interest[]
 
     @@index([username], name: "idx_user_username")
     @@index([accountId], name: "idx_user_account_id")
@@ -73,6 +74,16 @@ model ChatMember {
     chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
 
     @@unique([chatId, userId])
+}
+
+model Interest {
+    id        String   @id @default(cuid())
+    userId    String   @map("user_id")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+    tag       String
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Message {
