@@ -35,6 +35,9 @@ model User {
     chats     ChatMember[]
     messages  Message[]
     interests Interest[]
+    // combine both to bring a users friends when status is accepted
+    requester Friend[]     @relation("Requester") // bring a user's friend requests when status is pending
+    addressee Friend[]     @relation("Addressee") // bring a user's friend requests when status is pending
 
     @@index([username], name: "idx_user_username")
     @@index([accountId], name: "idx_user_account_id")
@@ -84,6 +87,29 @@ model Interest {
     tag       String
 
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// only one table for simplicity
+// we could have a separated table for the requests and one for the actual friends
+model Friend {
+    id          String       @id @default(cuid())
+    requesterId String       @map("requester_id")
+    addresseeId String       @map("addressee_id")
+    createdAt   DateTime     @default(now()) @map("created_at")
+    status      FriendStatus @default(PENDING)
+
+    requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+    addressee User @relation("Addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+    @@unique([requesterId, addresseeId])
+    @@index([requesterId], name: "idx_friend_requester_id")
+    @@index([addresseeId], name: "idx_friend_addressee_id")
+}
+
+enum FriendStatus {
+    PENDING
+    ACCEPTED
+    DECLINED
 }
 
 model Message {
