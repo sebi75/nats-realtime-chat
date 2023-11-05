@@ -3,6 +3,7 @@ package friends
 import (
 	"api/app/friends/domain"
 	"api/errs"
+	"api/utils/logger"
 	"database/sql"
 
 	"github.com/jmoiron/sqlx"
@@ -29,12 +30,17 @@ func (r *FriendsRepository) FindFriendById(id string) (*domain.Friend, *errs.App
 
 func (r *FriendsRepository) FindFriendByRequesteeAndAddresseeId(requesteeId, addresseeId, status string) (*domain.Friend, *errs.AppError) {
 	var friend domain.Friend
-	getFriendSql := `SELECT * FROM Friend WHERE requestee_id = ? AND addressee_id = ? AND status = ?`
+	getFriendSql := `SELECT * FROM Friend WHERE requestee_id = ? AND addressee_id = ?`
+	// if status is defined, add it to the query
+	if status != "" {
+		getFriendSql += ` AND status = ?`
+	}
 	err := r.client.Get(&friend, getFriendSql, requesteeId, addresseeId, status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, errs.NewNotFoundError("Friend not found")
 		} else {
+			logger.Error("Error while getting friend: " + err.Error())
 			return nil, errs.NewUnexpectedError("Unexpected database error")
 		}
 	}
@@ -42,13 +48,13 @@ func (r *FriendsRepository) FindFriendByRequesteeAndAddresseeId(requesteeId, add
 	return &friend, nil
 }
 
-func (r *FriendsRepository) FindAllFriendsByUserId(userId string) ([]domain.Friend, *errs.AppError) {
-	var friends []domain.Friend
+func (r *FriendsRepository) FindAllFriendsByUserId(userId string) ([]domain.FriendWithUser, *errs.AppError) {
+	var friends []domain.FriendWithUser
 	getFriendsSql := `SELECT
 						CASE
 							WHEN F.requester_id = ? THEN U1
 							ELSE U2
-						END AS user
+						END AS user, F
 					FROM
 						Friend F
 					JOIN
@@ -72,8 +78,8 @@ func (r *FriendsRepository) FindAllFriendsByUserId(userId string) ([]domain.Frie
 }
 
 func (r *FriendsRepository) Save(friend *domain.Friend) (*domain.Friend, *errs.AppError) {
-	insertFriendSql := `INSERT INTO Friend (id, requester_id, addressee_id, created_at, status) VALUES (?, ?, ?, ?, ?)`
-	_, err := r.client.Exec(insertFriendSql, friend.Id, friend.RequesterId, friend.AddresseeId, friend.CreatedAt, friend.Status)
+	insertFriendSql := `INSERT INTO Friend (id, requester_id, addressee_id) VALUES (?, ?, ?)`
+	_, err := r.client.Exec(insertFriendSql, friend.Id, friend.RequesterId, friend.AddresseeId)
 	if err != nil {
 		return nil, errs.NewUnexpectedError("Unexpected database error")
 	}
