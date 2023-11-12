@@ -52,13 +52,14 @@ func (s *FriendsService) RespondToFriendRequest(requesterId string, addresseeId 
 	return 0, nil
 }
 
-func (s *FriendsService) FindAllFriends(userId string) ([]domain.FriendWithUser, *errs.AppError) {
-	friends, err := s.repo.FindAllFriendsByUserId(userId)
+// add pagination and filtering
+func (s *FriendsService) FindAllFriends(userId string) (*FindFriendsResponse, *errs.AppError) {
+	friendsResponse, err := s.repo.FindAllFriendsByUserId(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	return friends, nil
+	return friendsResponse, nil
 }
 
 func NewFriendsService(repo *FriendsRepository) *FriendsService {

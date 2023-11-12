@@ -48,7 +48,12 @@ func (r *FriendsRepository) FindFriendByRequesteeAndAddresseeId(requesteeId, add
 	return &friend, nil
 }
 
-func (r *FriendsRepository) FindAllFriendsByUserId(userId string) ([]domain.FriendWithUser, *errs.AppError) {
+type FindFriendsResponse struct {
+	data []domain.FriendWithUser
+	meta interface{}
+}
+
+func (r *FriendsRepository) FindAllFriendsByUserId(userId string) (*FindFriendsResponse, *errs.AppError) {
 	var friends []domain.FriendWithUser
 	getFriendsSql := `SELECT
 						CASE
@@ -66,6 +71,7 @@ func (r *FriendsRepository) FindAllFriendsByUserId(userId string) ([]domain.Frie
 					AND
 						status = "ACCEPTED"
 					`
+	getFriendsCountSql := `SELECT COUNT(*) FROM Friend WHERE (requester_id = ? OR addressee_id = ?) AND status = "ACCEPTED"`
 	err := r.client.Select(&friends, getFriendsSql, userId, userId, userId)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -74,7 +80,24 @@ func (r *FriendsRepository) FindAllFriendsByUserId(userId string) ([]domain.Frie
 			return nil, errs.NewUnexpectedError("Unexpected database error")
 		}
 	}
-	return friends, nil
+	var count int
+	err = r.client.Get(&count, getFriendsCountSql, userId, userId)
+	if err != nil {
+		// check if this is right
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("Friends not found")
+		} else {
+			return nil, errs.NewUnexpectedError("Unexpected database error")
+		}
+	}
+	return &FindFriendsResponse{
+		data: friends,
+		meta: struct {
+			count int
+		}{
+			count: count,
+		},
+	}, nil
 }
 
 func (r *FriendsRepository) Save(friend *domain.Friend) (*domain.Friend, *errs.AppError) {
