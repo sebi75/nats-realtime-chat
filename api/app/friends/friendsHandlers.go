@@ -9,8 +9,8 @@ import (
 )
 
 type FriendsHandlers struct {
-	service     FriendsService
-	authService auth.AuthService
+	service     *FriendsService
+	authService *auth.AuthService
 }
 
 func (h *FriendsHandlers) SendFriendRequest(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +37,27 @@ func (h *FriendsHandlers) SendFriendRequest(w http.ResponseWriter, r *http.Reque
 	return
 }
 
-func NewFriendsHandlers(service FriendsService) FriendsHandlers {
-	return FriendsHandlers{
-		service: service,
+func (h *FriendsHandlers) FindFriends(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")[7:]
+	verifyResponse, err := h.authService.Verify(token)
+	if err != nil {
+		utils.ResponseWriter(w, http.StatusUnauthorized, err.Message)
+		return
+	}
+
+	friendsResponse, err := h.service.FindAllFriends(verifyResponse.Id)
+	if err != nil {
+		utils.ResponseWriter(w, err.Code, err.Message)
+		return
+	}
+
+	utils.ResponseWriter(w, http.StatusOK, friendsResponse)
+	return
+}
+
+func NewFriendsHandlers(service *FriendsService, authService *auth.AuthService) *FriendsHandlers {
+	return &FriendsHandlers{
+		service:     service,
+		authService: authService,
 	}
 }

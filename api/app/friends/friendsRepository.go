@@ -95,7 +95,7 @@ func (r *FriendsRepository) Update(friend *domain.Friend) (*domain.Friend, *errs
 	return friend, nil
 }
 
-func New(client *sqlx.DB) *FriendsRepository {
+func NewFriendsRepository(client *sqlx.DB) *FriendsRepository {
 	return &FriendsRepository{
 		client: client,
 	}

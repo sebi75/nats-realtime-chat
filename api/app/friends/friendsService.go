@@ -9,7 +9,7 @@ import (
 )
 
 type FriendsService struct {
-	repo FriendsRepository
+	repo *FriendsRepository
 }
 
 func (s *FriendsService) SendFriendRequest(requesterId string, addresseeId string) (*domain.Friend, *errs.AppError) {
@@ -61,8 +61,8 @@ func (s *FriendsService) FindAllFriends(userId string) ([]domain.FriendWithUser,
 	return friends, nil
 }
 
-func NewFriendsService(repo FriendsRepository) FriendsService {
-	return FriendsService{
+func NewFriendsService(repo *FriendsRepository) *FriendsService {
+	return &FriendsService{
 		repo: repo,
 	}
 }

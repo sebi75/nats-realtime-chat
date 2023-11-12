@@ -3,10 +3,12 @@ package app
 import (
 	"api/app/auth"
 	"api/app/chat"
+	"api/app/friends"
 	"api/app/messageBroker"
 	"api/app/ping"
 	"api/env"
 	"api/pkg/nats"
+	"api/utils"
 	"api/utils/logger"
 	"log"
 	"net/http"
@@ -30,10 +32,21 @@ func Start() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
+	db, err := utils.InitDbClient(config)
+
+	// repositories
+	friendsRepository := friends.NewFriendsRepository(db)
+
 	messageBroker := messageBroker.New(natsClient)
+	// services
 	authService := auth.NewAuthService(config)
+	friendsService := friends.NewFriendsService(friendsRepository)
+
+	// handlers
 	authHandler := auth.NewAuthHandlers(authService)
 	connectHandler, err := chat.NewChatHandler(messageBroker, authService)
+	friendsHandlers := friends.NewFriendsHandlers(friendsService, authService)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -49,6 +62,10 @@ func Start() {
 
 	// interests routes
 	// ...
+
+	// friends routes
+	router.HandleFunc("/friends/send", friendsHandlers.SendFriendRequest).Methods(http.MethodPost).Name("sendFriendRequest")
+	router.HandleFunc("/friends", friendsHandlers.FindFriends).Methods(http.MethodGet).Name("findFriends")
 
 	http.ListenAndServe(":8080", handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }
